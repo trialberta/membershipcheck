@@ -212,15 +212,14 @@
     background: var(--green-bg);
   }
 
-  /* The label covers only the upload area, not the clear button */
-  .upload-label {
-    display: block;
-    cursor: pointer;
-    padding-bottom: 8px;
-  }
-
   .upload-card input[type="file"] {
-    display: none;
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: calc(100% - 44px);
+    z-index: 1;
   }
 
   .upload-icon {
@@ -644,8 +643,8 @@
 
   <div class="upload-grid">
 
-    <div class="upload-card" id="card-roster" ondragover="handleDrag(event,'roster')" ondragleave="handleDragLeave(event,'roster')" ondrop="handleDrop(event,'roster')" onclick="triggerUpload(event,'roster')">
-      <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'roster')" id="file-roster" style="display:none;">
+    <div class="upload-card" id="card-roster" ondragover="handleDrag(event,'roster')" ondragleave="handleDragLeave(event,'roster')" ondrop="handleDrop(event,'roster')">
+      <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'roster')" id="file-roster">
       <span class="upload-icon">📋</span>
       <div class="upload-title">Registration List</div>
       <div class="upload-hint">The list of registered participants</div>
@@ -653,8 +652,8 @@
       <button class="clear-btn" id="clear-roster" onclick="clearFile(event,'roster')" style="display:none;">✕ Clear file</button>
     </div>
 
-    <div class="upload-card" id="card-annual" ondragover="handleDrag(event,'annual')" ondragleave="handleDragLeave(event,'annual')" ondrop="handleDrop(event,'annual')" onclick="triggerUpload(event,'annual')">
-      <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'annual')" id="file-annual" style="display:none;">
+    <div class="upload-card" id="card-annual" ondragover="handleDrag(event,'annual')" ondragleave="handleDragLeave(event,'annual')" ondrop="handleDrop(event,'annual')">
+      <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'annual')" id="file-annual">
       <span class="upload-icon">🏅</span>
       <div class="upload-title">Annual Membership List</div>
       <div class="upload-hint">Triathlon Alberta annual members <span style="color:var(--orange); font-weight:600;">(optional)</span></div>
@@ -662,8 +661,8 @@
       <button class="clear-btn" id="clear-annual" onclick="clearFile(event,'annual')" style="display:none;">✕ Clear file</button>
     </div>
 
-    <div class="upload-card" id="card-day" ondragover="handleDrag(event,'day')" ondragleave="handleDragLeave(event,'day')" ondrop="handleDrop(event,'day')" onclick="triggerUpload(event,'day')">
-      <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'day')" id="file-day" style="display:none;">
+    <div class="upload-card" id="card-day" ondragover="handleDrag(event,'day')" ondragleave="handleDragLeave(event,'day')" ondrop="handleDrop(event,'day')">
+      <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'day')" id="file-day">
       <span class="upload-icon">🎟️</span>
       <div class="upload-title">Day Membership List</div>
       <div class="upload-hint">Triathlon Alberta day members <span style="color:var(--orange); font-weight:600;">(optional)</span></div>
@@ -844,12 +843,6 @@ const colHeaders = {
 };
 
 // ===== FILE HANDLING =====
-function triggerUpload(e, key) {
-  // Don't open file picker if the clear button was clicked
-  if (e.target.classList.contains('clear-btn')) return;
-  document.getElementById('file-' + key).click();
-}
-
 function clearFile(e, key) {
   e.stopPropagation(); // prevent triggering the file input
   store[key] = null;
