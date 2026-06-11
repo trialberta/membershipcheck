@@ -554,7 +554,7 @@
     <div class="logo-mark">TA</div>
     <div class="header-text">
       <h1>Membership Checker</h1>
-      <p>Triathlon Alberta — Race Roster Verification Tool</p>
+      <p>Triathlon Alberta — Membership Verification Tool</p>
     </div>
     <div class="privacy-badge">All data stays local — nothing is uploaded</div>
   </div>
@@ -565,7 +565,7 @@
   <!-- Step 1: Upload -->
   <div class="step-label">Step 1 — Upload files</div>
   <div class="section-title">Load your three spreadsheets</div>
-  <p class="section-sub">Accepts .xlsx, .xls, and .csv files. The race roster is required. Load at least one membership list — you don't need both. All processing happens entirely in your browser.</p>
+  <p class="section-sub">Accepts .xlsx, .xls, and .csv files. The registration list is required. Load at least one membership list — you don't need both. All processing happens entirely in your browser.</p>
 
   <div class="info-box">
     <strong>Column mapping:</strong> After uploading each file, column selectors will appear so you can confirm which columns contain first name, last name, or a combined full name. The tool will try to auto-detect these — always double-check before running.
@@ -576,7 +576,7 @@
     <div class="upload-card" id="card-roster" ondragover="handleDrag(event,'roster')" ondragleave="handleDragLeave(event,'roster')" ondrop="handleDrop(event,'roster')">
       <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'roster')">
       <span class="upload-icon">📋</span>
-      <div class="upload-title">Race Roster</div>
+      <div class="upload-title">Registration List</div>
       <div class="upload-hint">The list of registered participants</div>
       <div class="upload-status status-empty" id="status-roster">No file loaded</div>
     </div>
@@ -601,7 +601,7 @@
 
   <!-- Column mapping panels — always shown after file load so user can verify -->
   <div class="mapping-panel" id="mapping-roster">
-    <div class="section-title" style="font-size:14px;">📋 Race Roster — confirm column mapping</div>
+    <div class="section-title" style="font-size:14px;">📋 Registration List — confirm column mapping</div>
     <p class="section-sub" style="font-size:12px; margin-bottom:12px;">
       If your file has separate First Name and Last Name columns, set both of those — leave "Full name" blank. If it has a single combined name column, set only "Full name".
     </p>
@@ -1068,7 +1068,7 @@ function runCheck() {
   const dayNames    = store.day    ? getNames(store.day,    'day')    : [];
 
   if (!rosterNames.length) {
-    alert('Could not read any names from the roster. Please check your column settings.');
+    alert('Could not read any names from the registration list. Please check your column settings.');
     return;
   }
 
@@ -1076,7 +1076,7 @@ function runCheck() {
   const singleWord = rosterNames.filter(n => !n.includes(' ')).length;
   if (singleWord / rosterNames.length > 0.8) {
     const proceed = confirm(
-      `Warning: ${singleWord} of ${rosterNames.length} roster names appear to be single words (e.g. first name only).\n\n` +
+      `Warning: ${singleWord} of ${rosterNames.length} registration list names appear to be single words (e.g. first name only).\n\n` +
       `This usually means the Last Name column isn't set. Check the column mapping above.\n\nProceed anyway?`
     );
     if (!proceed) return;
