@@ -565,7 +565,7 @@
   <!-- Step 1: Upload -->
   <div class="step-label">Step 1 — Upload files</div>
   <div class="section-title">Load your three spreadsheets</div>
-  <p class="section-sub">Accepts .xlsx, .xls, and .csv files. All processing happens entirely in your browser — no data is ever sent anywhere.</p>
+  <p class="section-sub">Accepts .xlsx, .xls, and .csv files. The race roster is required. Load at least one membership list — you don't need both. All processing happens entirely in your browser.</p>
 
   <div class="info-box">
     <strong>Column mapping:</strong> After uploading each file, column selectors will appear so you can confirm which columns contain first name, last name, or a combined full name. The tool will try to auto-detect these — always double-check before running.
@@ -585,7 +585,7 @@
       <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'annual')">
       <span class="upload-icon">🏅</span>
       <div class="upload-title">Annual Membership List</div>
-      <div class="upload-hint">Triathlon Alberta annual members</div>
+      <div class="upload-hint">Triathlon Alberta annual members <span style="color:var(--orange); font-weight:600;">(optional)</span></div>
       <div class="upload-status status-empty" id="status-annual">No file loaded</div>
     </div>
 
@@ -593,7 +593,7 @@
       <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'day')">
       <span class="upload-icon">🎟️</span>
       <div class="upload-title">Day Membership List</div>
-      <div class="upload-hint">Triathlon Alberta day members</div>
+      <div class="upload-hint">Triathlon Alberta day members <span style="color:var(--orange); font-weight:600;">(optional)</span></div>
       <div class="upload-status status-empty" id="status-day">No file loaded</div>
     </div>
 
@@ -930,7 +930,7 @@ function getNames(rows, key) {
 }
 
 function checkReadyState() {
-  const ready = store.roster && store.annual && store.day;
+  const ready = !!store.roster && (!!store.annual || !!store.day);
   document.getElementById('btn-run').disabled = !ready;
 }
 
@@ -1064,8 +1064,8 @@ function runCheck() {
   const threshold = parseInt(document.getElementById('fuzzy-threshold').value) / 100;
 
   const rosterNames = getNames(store.roster, 'roster');
-  const annualNames = getNames(store.annual, 'annual');
-  const dayNames = getNames(store.day, 'day');
+  const annualNames = store.annual ? getNames(store.annual, 'annual') : [];
+  const dayNames    = store.day    ? getNames(store.day,    'day')    : [];
 
   if (!rosterNames.length) {
     alert('Could not read any names from the roster. Please check your column settings.');
