@@ -643,8 +643,8 @@
 
   <div class="upload-grid">
 
-    <div class="upload-card" id="card-roster" ondragover="handleDrag(event,'roster')" ondragleave="handleDragLeave(event,'roster')" ondrop="handleDrop(event,'roster')">
-      <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'roster')" id="file-roster">
+    <div class="upload-card" id="card-roster">
+      <input type="file" accept=".xlsx,.xls,.csv" id="file-roster">
       <span class="upload-icon">📋</span>
       <div class="upload-title">Registration List</div>
       <div class="upload-hint">The list of registered participants</div>
@@ -652,8 +652,8 @@
       <button class="clear-btn" id="clear-roster" onclick="clearFile(event,'roster')" style="display:none;">✕ Clear file</button>
     </div>
 
-    <div class="upload-card" id="card-annual" ondragover="handleDrag(event,'annual')" ondragleave="handleDragLeave(event,'annual')" ondrop="handleDrop(event,'annual')">
-      <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'annual')" id="file-annual">
+    <div class="upload-card" id="card-annual">
+      <input type="file" accept=".xlsx,.xls,.csv" id="file-annual">
       <span class="upload-icon">🏅</span>
       <div class="upload-title">Annual Membership List</div>
       <div class="upload-hint">Triathlon Alberta annual members <span style="color:var(--orange); font-weight:600;">(optional)</span></div>
@@ -661,8 +661,8 @@
       <button class="clear-btn" id="clear-annual" onclick="clearFile(event,'annual')" style="display:none;">✕ Clear file</button>
     </div>
 
-    <div class="upload-card" id="card-day" ondragover="handleDrag(event,'day')" ondragleave="handleDragLeave(event,'day')" ondrop="handleDrop(event,'day')">
-      <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'day')" id="file-day">
+    <div class="upload-card" id="card-day">
+      <input type="file" accept=".xlsx,.xls,.csv" id="file-day">
       <span class="upload-icon">🎟️</span>
       <div class="upload-title">Day Membership List</div>
       <div class="upload-hint">Triathlon Alberta day members <span style="color:var(--orange); font-weight:600;">(optional)</span></div>
@@ -886,22 +886,6 @@ function resetAll() {
   // Reset run button state
   document.getElementById('btn-run').disabled = true;
   window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-  e.preventDefault();
-  document.getElementById('card-' + key).classList.add('dragover');
-}
-function handleDragLeave(e, key) {
-  document.getElementById('card-' + key).classList.remove('dragover');
-}
-function handleDrop(e, key) {
-  e.preventDefault();
-  document.getElementById('card-' + key).classList.remove('dragover');
-  const file = e.dataTransfer.files[0];
-  if (file) parseFile(file, key);
-}
-function handleFile(e, key) {
-  const file = e.target.files[0];
-  if (file) parseFile(file, key);
 }
 
 function parseFile(file, key) {
@@ -1521,6 +1505,30 @@ function downloadPDF(mode) {
 function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+// ===== INIT — wire up all event listeners =====
+document.addEventListener('DOMContentLoaded', function() {
+  ['roster', 'annual', 'day'].forEach(function(key) {
+    const input = document.getElementById('file-' + key);
+    const card  = document.getElementById('card-' + key);
+
+    // File selected via dialog
+    input.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) parseFile(file, key);
+    });
+
+    // Drag and drop
+    card.addEventListener('dragover',  function(e) { e.preventDefault(); card.classList.add('dragover'); });
+    card.addEventListener('dragleave', function()  { card.classList.remove('dragover'); });
+    card.addEventListener('drop',      function(e) {
+      e.preventDefault();
+      card.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) parseFile(file, key);
+    });
+  });
+});
 </script>
 
 </body>
