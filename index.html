@@ -724,9 +724,9 @@
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12v1.5A1.5 1.5 0 003.5 15h9A1.5 1.5 0 0014 13.5V12M8 1v9M5 7l3 3 3-3"/></svg>
           With memberships
         </button>
-        <button class="btn-dl" onclick="downloadPDF('none')">
+        <button class="btn-dl" onclick="downloadPDF('conflicts')">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12v1.5A1.5 1.5 0 003.5 15h9A1.5 1.5 0 0014 13.5V12M8 1v9M5 7l3 3 3-3"/></svg>
-          No memberships
+          Conflicts
         </button>
       </div>
     </div>
@@ -1287,8 +1287,8 @@ function downloadPDF(mode) {
 
   // Mode label — right-aligned to match right margin
   let modeLabel = 'All Participants';
-  if (mode === 'confirmed') modeLabel = 'Participants with Memberships';
-  if (mode === 'none') modeLabel = 'Participants without Memberships';
+  if (mode === 'confirmed')  modeLabel = 'Confirmed Memberships Only';
+  if (mode === 'conflicts')  modeLabel = 'Membership Conflicts';
   doc.text(`Report scope: ${modeLabel}`, pageW - margin, 21, { align: 'right' });
 
   // Stats
@@ -1308,8 +1308,8 @@ function downloadPDF(mode) {
 
   // Filter results
   let rows = store.results;
-  if (mode === 'confirmed') rows = rows.filter(x => x.status === 'confirmed' || x.status === 'potential');
-  if (mode === 'none') rows = rows.filter(x => x.status === 'none' || x.status === 'invalid_day');
+  if (mode === 'confirmed')  rows = rows.filter(x => x.status === 'confirmed');
+  if (mode === 'conflicts')  rows = rows.filter(x => x.status === 'none' || x.status === 'invalid_day' || x.status === 'potential');
 
   const tableData = rows.map((row, i) => {
     let status, detail;
@@ -1380,7 +1380,8 @@ function downloadPDF(mode) {
     doc.text(`Page ${p} of ${pageCount} — Triathlon Alberta Membership Verification — Confidential`, 14, 274);
   }
 
-  const fname = `TA_Membership_Check_${mode}_${new Date().toISOString().slice(0,10)}.pdf`;
+  const modeSlug = mode === 'confirmed' ? 'confirmed' : mode === 'conflicts' ? 'conflicts' : 'all';
+  const fname = `TA_Membership_Check_${modeSlug}_${new Date().toISOString().slice(0,10)}.pdf`;
   doc.save(fname);
 }
 
