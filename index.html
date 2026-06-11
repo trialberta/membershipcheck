@@ -200,6 +200,22 @@
   .status-ok { color: #166534; }
   .status-empty { color: var(--text-muted); }
 
+  .clear-btn {
+    margin-top: 8px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--red-badge);
+    background: #fee2e2;
+    border: 1px solid var(--red-border);
+    border-radius: 20px;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+    transition: background 0.15s;
+  }
+  .clear-btn:hover { background: #fca5a5; }
+
   /* Column mapping */
   .mapping-panel {
     background: var(--surface);
@@ -556,7 +572,14 @@
       <h1>Membership Checker</h1>
       <p>Triathlon Alberta — Membership Verification Tool</p>
     </div>
-    <div class="privacy-badge">All data stays local — nothing is uploaded</div>
+    <div style="margin-left:auto; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <div style="display:flex; flex-direction:column; gap:3px;">
+        <label for="event-name" style="font-size:11px; color:rgba(255,255,255,0.55); letter-spacing:0.5px; text-transform:uppercase;">Event / Race name</label>
+        <input id="event-name" type="text" placeholder="e.g. 2026 Lott Creek Triathlon" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:6px; padding:6px 10px; font-size:13px; color:#fff; width:240px; outline:none;" oninput="this.style.borderColor=this.value?'rgba(255,255,255,0.5)':'rgba(255,255,255,0.25)'">
+      </div>
+      <button onclick="resetAll()" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:6px; padding:7px 14px; font-size:13px; color:rgba(255,255,255,0.85); cursor:pointer; white-space:nowrap; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">↺ Reset all</button>
+      <div class="privacy-badge">All data stays local</div>
+    </div>
   </div>
 </header>
 
@@ -574,27 +597,30 @@
   <div class="upload-grid">
 
     <div class="upload-card" id="card-roster" ondragover="handleDrag(event,'roster')" ondragleave="handleDragLeave(event,'roster')" ondrop="handleDrop(event,'roster')">
-      <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'roster')">
+      <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'roster')" id="file-roster">
       <span class="upload-icon">📋</span>
       <div class="upload-title">Registration List</div>
       <div class="upload-hint">The list of registered participants</div>
       <div class="upload-status status-empty" id="status-roster">No file loaded</div>
+      <button class="clear-btn" id="clear-roster" onclick="clearFile(event,'roster')" style="display:none;">✕ Clear</button>
     </div>
 
     <div class="upload-card" id="card-annual" ondragover="handleDrag(event,'annual')" ondragleave="handleDragLeave(event,'annual')" ondrop="handleDrop(event,'annual')">
-      <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'annual')">
+      <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'annual')" id="file-annual">
       <span class="upload-icon">🏅</span>
       <div class="upload-title">Annual Membership List</div>
       <div class="upload-hint">Triathlon Alberta annual members <span style="color:var(--orange); font-weight:600;">(optional)</span></div>
       <div class="upload-status status-empty" id="status-annual">No file loaded</div>
+      <button class="clear-btn" id="clear-annual" onclick="clearFile(event,'annual')" style="display:none;">✕ Clear</button>
     </div>
 
     <div class="upload-card" id="card-day" ondragover="handleDrag(event,'day')" ondragleave="handleDragLeave(event,'day')" ondrop="handleDrop(event,'day')">
-      <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'day')">
+      <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'day')" id="file-day">
       <span class="upload-icon">🎟️</span>
       <div class="upload-title">Day Membership List</div>
       <div class="upload-hint">Triathlon Alberta day members <span style="color:var(--orange); font-weight:600;">(optional)</span></div>
       <div class="upload-status status-empty" id="status-day">No file loaded</div>
+      <button class="clear-btn" id="clear-day" onclick="clearFile(event,'day')" style="display:none;">✕ Clear</button>
     </div>
 
   </div>
@@ -770,7 +796,50 @@ const colHeaders = {
 };
 
 // ===== FILE HANDLING =====
-function handleDrag(e, key) {
+function clearFile(e, key) {
+  e.stopPropagation(); // prevent triggering the file input
+  store[key] = null;
+  colHeaders[key] = [];
+
+  // Reset file input so same file can be re-uploaded
+  const input = document.getElementById('file-' + key);
+  if (input) input.value = '';
+
+  // Reset card appearance
+  const card = document.getElementById('card-' + key);
+  card.classList.remove('loaded');
+  const status = document.getElementById('status-' + key);
+  status.className = 'upload-status status-empty';
+  status.textContent = 'No file loaded';
+
+  // Hide clear button and mapping panel
+  document.getElementById('clear-' + key).style.display = 'none';
+  document.getElementById('mapping-' + key).classList.remove('visible');
+
+  // Clear race filter if day file cleared
+  if (key === 'day') {
+    document.getElementById('col-day-groups').innerHTML = '<option value="">— not using race filter —</option>';
+    document.getElementById('race-select-wrap').style.display = 'none';
+  }
+
+  checkReadyState();
+}
+
+function resetAll() {
+  if (!confirm('Reset everything and start over?')) return;
+  ['roster', 'annual', 'day'].forEach(key => {
+    if (store[key]) clearFile({ stopPropagation: () => {} }, key);
+  });
+  // Clear event name
+  document.getElementById('event-name').value = '';
+  // Hide results
+  store.results = [];
+  store.filter = 'all';
+  document.getElementById('results-section').classList.remove('visible');
+  // Reset run button state
+  document.getElementById('btn-run').disabled = true;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
   e.preventDefault();
   document.getElementById('card-' + key).classList.add('dragover');
 }
@@ -811,6 +880,7 @@ function parseFile(file, key) {
       card.classList.add('loaded');
       status.className = 'upload-status status-ok';
       status.textContent = `✓ ${rows.length} rows loaded — ${file.name}`;
+      document.getElementById('clear-' + key).style.display = '';
 
       // Populate column selectors
       populateSelectors(key);
@@ -1273,8 +1343,9 @@ function downloadPDF(mode) {
   const contentW = pageW - margin * 2;             // 187.9mm
 
   // Header bar — full width
+  const eventName = document.getElementById('event-name').value.trim();
   doc.setFillColor(26, 46, 74);
-  doc.rect(0, 0, pageW, 28, 'F');
+  doc.rect(0, 0, pageW, eventName ? 34 : 28, 'F');
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
@@ -1283,13 +1354,26 @@ function downloadPDF(mode) {
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(180, 195, 215);
   const now = new Date().toLocaleString('en-CA', { dateStyle: 'long', timeStyle: 'short' });
-  doc.text(`Generated: ${now}`, margin, 21);
+  if (eventName) {
+    doc.setFontSize(11);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.text(eventName, margin, 21);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(180, 195, 215);
+    doc.text(`Generated: ${now}`, margin, 28);
+  } else {
+    doc.text(`Generated: ${now}`, margin, 21);
+  }
 
-  // Mode label — right-aligned to match right margin
+  // Mode label — right-aligned
   let modeLabel = 'All Participants';
   if (mode === 'confirmed')  modeLabel = 'Confirmed Memberships Only';
   if (mode === 'conflicts')  modeLabel = 'Membership Conflicts';
-  doc.text(`Report scope: ${modeLabel}`, pageW - margin, 21, { align: 'right' });
+  doc.text(`Report scope: ${modeLabel}`, pageW - margin, eventName ? 28 : 21, { align: 'right' });
+
+  const headerBottom = eventName ? 34 : 28;
 
   // Stats
   const r = store.results;
@@ -1301,7 +1385,7 @@ function downloadPDF(mode) {
   doc.setTextColor(40, 40, 40);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  const statsY = 35;
+  const statsY = headerBottom + 7;
   let statsLine = `Total: ${r.length}  |  Confirmed: ${confirmed}  |  Potential: ${potential}  |  No membership: ${none}`;
   if (invalidDay) statsLine += `  |  Wrong race: ${invalidDay}`;
   doc.text(statsLine, margin, statsY);
@@ -1381,7 +1465,8 @@ function downloadPDF(mode) {
   }
 
   const modeSlug = mode === 'confirmed' ? 'confirmed' : mode === 'conflicts' ? 'conflicts' : 'all';
-  const fname = `TA_Membership_Check_${modeSlug}_${new Date().toISOString().slice(0,10)}.pdf`;
+  const eventSlug = eventName ? '_' + eventName.replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_') : '';
+  const fname = `TA_Membership_Check${eventSlug}_${modeSlug}_${new Date().toISOString().slice(0,10)}.pdf`;
   doc.save(fname);
 }
 
